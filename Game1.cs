@@ -124,6 +124,9 @@ namespace Starship
                 case GameState.GameOver:
                     UpdateGameOver(gameTime);
                     break;
+                case GameState.Scores:
+                    UpdateScores(gameTime);
+                    break;
             }
 
             base.Update(gameTime);
@@ -174,6 +177,18 @@ namespace Starship
             previousBackState = currentBackState;
         }
 
+        private void UpdateScores(GameTime gameTime)
+        {
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape) && previousExitStateReleased == true)
+            {
+                gameState = GameState.FirstScreen;
+                previousExitStateReleased = false;
+            }
+            if (Keyboard.GetState().IsKeyUp(Keys.Escape))
+                previousExitStateReleased = true;
+
+        }
+
         private void UpdateGameOver(GameTime gameTime)
         {
 
@@ -207,7 +222,7 @@ namespace Starship
                 }
                 else if (mouseRectangle.Intersects(button3) )
                 {
-                    //gameState = GameState.Scores;
+                    gameState = GameState.Scores;
                     leftButtonReleased = false;
 
                 }
@@ -252,7 +267,7 @@ namespace Starship
                 }
                 else if (mouseRectangle.Intersects(button3))
                 {
-                    //gameState = GameState.Options;
+                    gameState = GameState.Scores;
                 }
                 else if (mouseRectangle.Intersects(button4))
                 {
@@ -409,6 +424,9 @@ namespace Starship
                 case GameState.GameOver:
                     DrawGameOver();
                     break;
+                case GameState.Scores:
+                    DrawScores();
+                    break;
             }
 
             spriteBatch.End();
@@ -419,6 +437,28 @@ namespace Starship
         {
             spriteBatch.DrawString(scoreFont, "Enter your name:", new Vector2(10, 10), Color.White);
             spriteBatch.DrawString(scoreFont, playerName, new Vector2(10, 40), Color.White);
+        }
+
+        private void DrawScores()
+        {
+            //Draw the scores in the center of the screen
+            spriteBatch.DrawString(scoreFont, "High Scores", new Vector2(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200), Color.White);
+            //create a list of high scores
+            List<KeyValuePair<string, int>> highScores = new List<KeyValuePair<string, int>>();
+            //add all the scores to the list
+            highScores.Add(new KeyValuePair<string, int>("Player 1", 100));
+            highScores.Add(new KeyValuePair<string, int>("Player 2", 200));
+            highScores.Add(new KeyValuePair<string, int>("Player 3", 300));
+            highScores.Add(new KeyValuePair<string, int>("Player 4", 400));
+            // Draw 4  high scores with  users as key value
+            int i = 0;
+            foreach (var score in highScores)
+            {
+                spriteBatch.DrawString(scoreFont, score.Key + " : " + score.Value, new Vector2(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200 + 60 + 30 * i), Color.White);
+                i++;
+            }
+
+
         }
 
         private void DrawGameOver()
