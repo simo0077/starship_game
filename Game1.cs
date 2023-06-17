@@ -2,7 +2,10 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.IO;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Starship
 {
@@ -13,6 +16,7 @@ namespace Starship
         HowToPlay,
         Playing,
         Scores,
+        Pause,
         GameOver
     }
 
@@ -27,15 +31,13 @@ namespace Starship
         private Vector2 vaisseauPosition;
         private float saucerSpeed = 5f;
 
-        private List<Texture2D> tirTextures;
-        private List<Vector2> tirPositions;
+        private List<Tir> tirs;
         private float tirSpeed = 8f;
         private bool isFiring = false;
 
         private Random random;
-        private List<Texture2D> flyingTextures;
-        private List<Vector2> flyingPositions;
-        private List<bool> flyingActiveStates;
+        private List<Saucer> saucers;
+        
         private float flyingSpeed = 3f;
         private float flyingInterval = 2f; // en secondes
         private float flyingTimer = 0f;
@@ -47,10 +49,15 @@ namespace Starship
         private bool previousExitStateReleased = true;
         private bool leftButtonReleased = true;
 
+        KeyboardState previousKeyboardState;
+
         private GameState gameState = GameState.FirstScreen;
         private string playerName = string.Empty;
         Texture2D buttonTexture;
-        
+        Texture2D pauseTexture;
+
+        List<KeyValuePair<string, int>> highScores;
+
 
         //create 3 rectangles for buttons
         Rectangle button1;
@@ -73,15 +80,14 @@ namespace Starship
             _graphics.IsFullScreen = true;
             _graphics.ApplyChanges();
             random = new Random();
-            tirTextures = new List<Texture2D>();
-            tirPositions = new List<Vector2>();
-            flyingTextures = new List<Texture2D>();
-            flyingPositions = new List<Vector2>();
-            flyingActiveStates = new List<bool>();
+            tirs = new List<Tir>();
+            saucers = new List<Saucer>();
+            
             button1 = new Rectangle((GraphicsDevice.Viewport.Width / 2) - 100, (GraphicsDevice.Viewport.Height / 2) - 100, 200, 50);
             button2 = new Rectangle((GraphicsDevice.Viewport.Width / 2) - 100, (GraphicsDevice.Viewport.Height / 2), 200, 50);
             button3 = new Rectangle((GraphicsDevice.Viewport.Width / 2) - 100, (GraphicsDevice.Viewport.Height / 2) + 100, 200, 50);
             button4 = new Rectangle((GraphicsDevice.Viewport.Width / 2) - 100, (GraphicsDevice.Viewport.Height / 2) + 200, 200, 50);
+            highScores = RetrieveScores("scores.txt");
 
 
             base.Initialize();
@@ -96,11 +102,18 @@ namespace Starship
             tir = Content.Load<Texture2D>("tir");
             flyingSaucer = Content.Load<Texture2D>("flyingSaucer-petit");
             scoreFont = Content.Load<SpriteFont>("galleryFont");
+
+            
             Color buttonColor = Color.Black; // Replace with your desired button color
+            Color pauseColor = Color.White; // Replace with your desired button color
 
             // Create a 1x1 pixel texture with the button color
             buttonTexture = new Texture2D(GraphicsDevice, 1, 1);
             buttonTexture.SetData(new[] { buttonColor });
+
+            // Create a 1x1 pixel texture with the button color
+            pauseTexture = new Texture2D(GraphicsDevice, 1, 1);
+            pauseTexture.SetData(new[] { pauseColor });
 
 
         }
@@ -127,6 +140,9 @@ namespace Starship
                 case GameState.Scores:
                     UpdateScores(gameTime);
                     break;
+                case GameState.Pause:
+                    UpdatePause(gameTime);
+                    break;
             }
 
             base.Update(gameTime);
@@ -150,6 +166,7 @@ namespace Starship
             KeyboardState keyboardState = Keyboard.GetState();
             bool currentEnterState = keyboardState.IsKeyDown(Keys.Enter);
             bool currentBackState = keyboardState.IsKeyDown(Keys.Back);
+            KeyboardState currentKeyboardState = Keyboard.GetState();
 
             if (currentEnterState && !previousEnterState && !string.IsNullOrWhiteSpace(playerName))
             {
@@ -164,17 +181,23 @@ namespace Starship
             {
                 Keys[] pressedKeys = keyboardState.GetPressedKeys();
 
-                foreach (Keys key in pressedKeys)
+                if (pressedKeys.Length > 0)
                 {
+                    Keys key = pressedKeys[0];
                     if (key >= Keys.A && key <= Keys.Z)
                     {
-                        playerName += key.ToString();
+                        char character = (char)key;
+                        if (!previousKeyboardState.IsKeyDown(key))
+                        {
+                            playerName += character;
+                        }
                     }
                 }
             }
 
             previousEnterState = currentEnterState;
             previousBackState = currentBackState;
+            previousKeyboardState = currentKeyboardState;
         }
 
         private void UpdateScores(GameTime gameTime)
@@ -186,6 +209,7 @@ namespace Starship
             }
             if (Keyboard.GetState().IsKeyUp(Keys.Escape))
                 previousExitStateReleased = true;
+            highScores = RetrieveScores("scores.txt");
 
         }
 
@@ -212,6 +236,7 @@ namespace Starship
                 if (mouseRectangle.Intersects(button1) )
                 {
                     gameState = GameState.Playing;
+                    InitializeGame();
                     leftButtonReleased = false;
                 }
                 else if (mouseRectangle.Intersects(button2) )
@@ -227,6 +252,43 @@ namespace Starship
 
                 }
             }
+
+        }
+
+        private void UpdatePause(GameTime gameTime)
+        {
+
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape) && previousExitStateReleased == true)
+            {
+                gameState = GameState.Playing;
+                previousExitStateReleased = false;
+            }
+            if (Keyboard.GetState().IsKeyUp(Keys.Escape))
+                previousExitStateReleased = true;
+
+            MouseState mouseState = Mouse.GetState();
+            if (mouseState.LeftButton == ButtonState.Released)
+                leftButtonReleased = true;
+            if (mouseState.LeftButton == ButtonState.Pressed && leftButtonReleased)
+            {
+                Rectangle mouseRectangle = new Rectangle(mouseState.X, mouseState.Y, 1, 1);
+
+                if (mouseRectangle.Intersects(button1))
+                {
+                    gameState = GameState.Playing;
+                    leftButtonReleased = false;
+                }
+                else if (mouseRectangle.Intersects(button2))
+                {
+                    gameState = GameState.GameOver;
+                    AddScore(playerName, score, "scores.txt");
+                    leftButtonReleased = false;
+
+                }
+                
+            }
+
 
         }
 
@@ -283,7 +345,7 @@ namespace Starship
                 previousExitStateReleased = true;
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape) && previousExitStateReleased)
             {
-                gameState = GameState.GameOver;
+                gameState = GameState.Pause;
                 previousExitStateReleased = false;
             }
                 
@@ -306,11 +368,10 @@ namespace Starship
 
             if (isSpacePressed && !isFiring)
             {
-                Texture2D newTirTexture = tir;
+                
                 Vector2 newTirPosition = new Vector2(vaisseauPosition.X + vaisseau.Width, vaisseauPosition.Y + vaisseau.Height / 2 - tir.Height / 2);
 
-                tirTextures.Add(newTirTexture);
-                tirPositions.Add(newTirPosition);
+                tirs.Add(new Tir(newTirPosition, tir));
 
                 isFiring = true;
             }
@@ -319,35 +380,28 @@ namespace Starship
                 isFiring = false;
             }
 
-            for (int i = tirPositions.Count - 1; i >= 0; i--)
+            for (int i = tirs.Count - 1; i >= 0; i--)
             {
-                Vector2 currentTirPosition = tirPositions[i];
-                currentTirPosition.X += tirSpeed;
 
-                tirPositions[i] = currentTirPosition;
+                tirs[i].move("right", tirSpeed);
+                
 
-                if (currentTirPosition.X > GraphicsDevice.Viewport.Width)
+                if (tirs[i].position.X > GraphicsDevice.Viewport.Width)
                 {
-                    tirPositions.RemoveAt(i);
-                    tirTextures.RemoveAt(i);
+                    tirs.RemoveAt(i);
                 }
                 else
                 {
                     // Vérifier les collisions avec les secoupes volantes
-                    Rectangle tirRect = new Rectangle((int)currentTirPosition.X, (int)currentTirPosition.Y, tir.Width, tir.Height);
-                    for (int j = flyingPositions.Count - 1; j >= 0; j--)
+                    Rectangle tirRect = new Rectangle((int)tirs[i].position.X, (int)tirs[i].position.Y, tir.Width, tir.Height);
+                    for (int j = saucers.Count - 1; j >= 0; j--)
                     {
-                        Rectangle flyingRect = new Rectangle((int)flyingPositions[j].X, (int)flyingPositions[j].Y, flyingSaucer.Width, flyingSaucer.Height);
-                        if (flyingPositions[j].X <= 1)
-                        {
-                            score=0;
-                        }
-                        if (tirRect.Intersects(flyingRect))
+                        Rectangle flyingRect = new Rectangle((int)saucers[j].position.X, (int)saucers[j].position.Y, flyingSaucer.Width, flyingSaucer.Height);    
+                        if (tirRect.Intersects(flyingRect) && saucers[j].isActive)
                         {
                             score++;
-                            flyingActiveStates[j] = false;
-                            tirPositions.RemoveAt(i);
-                            tirTextures.RemoveAt(i);
+                            saucers[j].isActive = false;
+                            tirs.RemoveAt(i);
                             break; // Sortir de la boucle, car un tir ne peut toucher qu'un seul vaisseau volant
                         }
 
@@ -363,40 +417,31 @@ namespace Starship
                 flyingTimer = 0f;
             }
 
-            for (int i = flyingPositions.Count - 1; i >= 0; i--)
+            for (int i = saucers.Count - 1; i >= 0; i--)
             {
-                if (flyingActiveStates[i])
+                if (saucers[i].isActive)
                 {
-                    Vector2 currentFlyingPosition = flyingPositions[i];
-                    currentFlyingPosition.X -= flyingSpeed;
+                    saucers[i].move("left", flyingSpeed);
+                    
 
-                    flyingPositions[i] = currentFlyingPosition;
-
-                    if (currentFlyingPosition.X + flyingSaucer.Width < 0)
+                    if (saucers[i].position.X + flyingSaucer.Width < 0)
                     {
-                        
-                        flyingPositions.RemoveAt(i);
-                        flyingTextures.RemoveAt(i);
-                        flyingActiveStates.RemoveAt(i);
+
+                        saucers[i].isInScreen = false;
                         gameState = GameState.GameOver;
+                        AddScore(playerName, score, "scores.txt");
                         previousExitStateReleased = false;
                     }
                 }
                 else
                 {
                     // Faire tomber le vaisseau volant verticalement
-                    Vector2 currentFlyingPosition = flyingPositions[i];
-                    currentFlyingPosition.Y += flyingSpeed;
-
-                    flyingPositions[i] = currentFlyingPosition;
+                    saucers[i].move("down", saucerSpeed);
 
                     // Supprimer le vaisseau volant s'il sort de l'écran
-                    if (currentFlyingPosition.Y > GraphicsDevice.Viewport.Height)
+                    if (saucers[i].position.Y > GraphicsDevice.Viewport.Height)
                     {
-                        
-                        flyingPositions.RemoveAt(i);
-                        flyingTextures.RemoveAt(i);
-                        flyingActiveStates.RemoveAt(i);
+                        saucers[i].isInScreen = false;
                     }
                 }
             }
@@ -427,6 +472,9 @@ namespace Starship
                 case GameState.Scores:
                     DrawScores();
                     break;
+                case GameState.Pause:
+                    DrawPause();
+                    break;
             }
 
             spriteBatch.End();
@@ -443,18 +491,20 @@ namespace Starship
         {
             //Draw the scores in the center of the screen
             spriteBatch.DrawString(scoreFont, "High Scores", new Vector2(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200), Color.White);
-            //create a list of high scores
-            List<KeyValuePair<string, int>> highScores = new List<KeyValuePair<string, int>>();
-            //add all the scores to the list
-            highScores.Add(new KeyValuePair<string, int>("Player 1", 100));
-            highScores.Add(new KeyValuePair<string, int>("Player 2", 200));
-            highScores.Add(new KeyValuePair<string, int>("Player 3", 300));
-            highScores.Add(new KeyValuePair<string, int>("Player 4", 400));
-            // Draw 4  high scores with  users as key value
+           
+            
+            
+            
             int i = 0;
             foreach (var score in highScores)
             {
-                spriteBatch.DrawString(scoreFont, score.Key + " : " + score.Value, new Vector2(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200 + 60 + 30 * i), Color.White);
+                // limit score.key to 10 characters and add ... if it is longer
+                string name = score.Key;
+                if (score.Key.Length > 10)
+                {
+                    name = score.Key.Substring(0, 10) + "...";
+                }
+                spriteBatch.DrawString(scoreFont, name + " : " + score.Value, new Vector2(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200 + 60 + 30 * i), Color.White);
                 i++;
             }
 
@@ -475,6 +525,45 @@ namespace Starship
             spriteBatch.DrawString(scoreFont, "Play again", new Vector2(button1.X + 10, button1.Y + 10), Color.White);
             spriteBatch.DrawString(scoreFont, "Main menu", new Vector2(button2.X + 10, button2.Y + 10), Color.White);
             spriteBatch.DrawString(scoreFont, "High scores", new Vector2(button3.X + 10, button3.Y + 10), Color.White);
+
+        }
+
+        private void DrawPause()
+        {
+            //Draw the screen of the game
+            Rectangle backgroundRectangle = new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            spriteBatch.Draw(backgroundTexture, backgroundRectangle, Color.White);
+
+            spriteBatch.Draw(vaisseau, vaisseauPosition, Color.White);
+
+            for (int i = 0; i < tirs.Count; i++)
+            {
+                spriteBatch.Draw(tirs[i].mobileTexture, tirs[i].position, Color.White);
+            }
+
+            for (int i = 0; i < saucers.Count; i++)
+            {
+                if (saucers[i].isInScreen)
+                {
+                    spriteBatch.Draw(saucers[i].mobileTexture, saucers[i].position, Color.White);
+
+                }
+            }
+
+            spriteBatch.DrawString(scoreFont, "Score: " + score, new Vector2(10, 10), Color.White);
+
+            //Draw a blue rectangle in the center of the screen for the pause menu
+            spriteBatch.Draw(pauseTexture, new Rectangle(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200, 400, 400), Color.White);
+            //Draw the text on top of the rectangle
+            spriteBatch.DrawString(scoreFont, "Game paused", new Vector2(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200), Color.Black);
+            spriteBatch.DrawString(scoreFont, "Press escape to resume", new Vector2(GraphicsDevice.Viewport.Width / 2 - 200, GraphicsDevice.Viewport.Height / 2 - 200 + 30), Color.Black);
+            //Draw three buttons as rectangles (resume, main menu)
+            spriteBatch.Draw(buttonTexture, button1, Color.White);
+            spriteBatch.Draw(buttonTexture, button2, Color.White);
+            //draw text on top of the buttons
+            spriteBatch.DrawString(scoreFont, "Resume", new Vector2(button1.X + 10, button1.Y + 10), Color.White);
+            spriteBatch.DrawString(scoreFont, "End game", new Vector2(button2.X + 10, button2.Y + 10), Color.White);
+
 
         }
 
@@ -512,14 +601,18 @@ namespace Starship
 
             spriteBatch.Draw(vaisseau, vaisseauPosition, Color.White);
 
-            for (int i = 0; i < tirPositions.Count; i++)
+            for (int i = 0; i < tirs.Count; i++)
             {
-                spriteBatch.Draw(tirTextures[i], tirPositions[i], Color.White);
+                spriteBatch.Draw(tirs[i].mobileTexture, tirs[i].position, Color.White);
             }
 
-            for (int i = 0; i < flyingPositions.Count; i++)
+            for (int i = 0; i < saucers.Count; i++)
             {
-                spriteBatch.Draw(flyingTextures[i], flyingPositions[i], Color.White);
+                if (saucers[i].isInScreen)
+                {
+                    spriteBatch.Draw(saucers[i].mobileTexture, saucers[i].position, Color.White);
+
+                }
             }
 
             spriteBatch.DrawString(scoreFont, "Score: " + score, new Vector2(10, 10), Color.White);
@@ -529,11 +622,8 @@ namespace Starship
         {
             // Réinitialiser les paramètres du jeu
             vaisseauPosition = new Vector2(10, GraphicsDevice.Viewport.Height / 2 - vaisseau.Height / 2);
-            tirTextures.Clear();
-            tirPositions.Clear();
-            flyingTextures.Clear();
-            flyingPositions.Clear();
-            flyingActiveStates.Clear();
+            tirs.Clear();
+            saucers.Clear();
             score = 0;
 
             // Initialiser le timer des vaisseaux volants
@@ -542,13 +632,65 @@ namespace Starship
 
         private void SpawnFlying()
         {
-            Texture2D newFlyingTexture = flyingSaucer;
             float newFlyingY = random.Next(0, GraphicsDevice.Viewport.Height - flyingSaucer.Height);
             Vector2 newFlyingPosition = new Vector2(GraphicsDevice.Viewport.Width, newFlyingY);
+            Saucer saucer = new Saucer(newFlyingPosition, flyingSaucer, true);
 
-            flyingTextures.Add(newFlyingTexture);
-            flyingPositions.Add(newFlyingPosition);
-            flyingActiveStates.Add(true);
+            saucers.Add(saucer);
+
+        }
+
+        public List<KeyValuePair<string, int>> RetrieveScores(string fileName)
+        {
+            List<KeyValuePair<string, int>> scores = new List<KeyValuePair<string, int>>();
+
+            string[] lines = File.ReadAllLines(fileName);
+
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(',');
+
+                if (parts.Length == 2)
+                {
+                    string name = parts[0];
+                    int score;
+
+                    if (int.TryParse(parts[1], out score))
+                    {
+                        scores.Add(new KeyValuePair<string, int>(name, score));
+                    }
+                }
+            }
+
+            return scores;
+        }
+        public void AddScore(string username, int score, string fileName)
+        {
+            List<KeyValuePair<string, int>> existingScores = RetrieveScores(fileName);
+
+            existingScores.Add(new KeyValuePair<string, int>(username, score));
+
+            existingScores = existingScores.OrderByDescending(s => s.Value).ToList();
+
+            List<KeyValuePair<string, int>> topScores = existingScores.Take(5).ToList();
+
+            SaveScores(topScores, fileName);
+        }
+
+        public void SaveScores(List<KeyValuePair<string, int>> scores, string fileName)
+        {
+            // Create a StringBuilder to build the content of the file
+            StringBuilder sb = new StringBuilder();
+
+            // Iterate through each score in the list
+            foreach (var score in scores)
+            {
+                // Append the score information to the StringBuilder
+                sb.AppendLine($"{score.Key},{score.Value}");
+            }
+
+            // Write the contents of the StringBuilder to the file
+            File.WriteAllText(fileName, sb.ToString());
         }
     }
 }

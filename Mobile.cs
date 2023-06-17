@@ -1,8 +1,9 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,17 +11,34 @@ namespace Starship
 {
     public  abstract class Mobile
     {
-        private Vector2 postion;
-        private Texture2D mobileTexture;
-        
+        public Vector2 position;
+        public Texture2D mobileTexture;
 
 
-        public abstract void move(int pasDeDeplacement);
 
-        public abstract void intersectWith();
+        public  void move(string direction, float speed)
+        {
+            if (direction == "left")
+            {
+                this.position.X -= speed;
+            }
+            else if (direction == "right")
+            {
+                this.position.X += speed;
+            }
+            else if (direction == "up")
+            {
+                this.position.Y -= speed;
+            }
+            else if (direction == "down")
+            {
+                this.position.Y += speed;
+            }
+        }
 
-       
-      
+
+
+
 
     }
 }

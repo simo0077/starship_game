@@ -4,11 +4,11 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/hicham/source/repos/Starship/Content/ciel-nocturne.png</File>
-    <File>C:/Users/hicham/source/repos/Starship/Content/flyingSaucer-petit.png</File>
-    <File>C:/Users/hicham/source/repos/Starship/Content/galleryFont.spritefont</File>
-    <File>C:/Users/hicham/source/repos/Starship/Content/tir.png</File>
-    <File>C:/Users/hicham/source/repos/Starship/Content/vaisseau-ballon-petit.png</File>
+    <File>C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/ciel-nocturne.png</File>
+    <File>C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/flyingSaucer-petit.png</File>
+    <File>C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/galleryFont.spritefont</File>
+    <File>C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/tir.png</File>
+    <File>C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/vaisseau-ballon-petit.png</File>
   </SourceFiles>
   <DestFiles>
     <File xsi:nil="true" />

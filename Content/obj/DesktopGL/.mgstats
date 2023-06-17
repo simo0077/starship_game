@@ -1,2 +1,6 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"C:/Users/hicham/source/repos/Starship/Content/galleryFont.spritefont","C:/Users/hicham/source/repos/Starship/Content/bin/DesktopGL/galleryFont.xnb","FontDescriptionProcessor","SpriteFontContent",2065,70687,0,3988974
+"C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/ciel-nocturne.png","C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/bin/DesktopGL/ciel-nocturne.xnb","TextureProcessor","Texture2DContent",29501,402685,0.1588554
+"C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/flyingSaucer-petit.png","C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/bin/DesktopGL/flyingSaucer-petit.xnb","TextureProcessor","Texture2DContent",2175,6997,0.0026509
+"C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/galleryFont.spritefont","C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/bin/DesktopGL/galleryFont.xnb","FontDescriptionProcessor","SpriteFontContent",2065,70687,0.117549
+"C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/tir.png","C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/bin/DesktopGL/tir.xnb","TextureProcessor","Texture2DContent",130,1109,0.0029913
+"C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/vaisseau-ballon-petit.png","C:/Users/Mohamed LEMBARKI/Downloads/Starship/Starship/Content/bin/DesktopGL/vaisseau-ballon-petit.xnb","TextureProcessor","Texture2DContent",4029,7573,0.0035209
