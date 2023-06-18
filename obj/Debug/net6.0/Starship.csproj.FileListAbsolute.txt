@@ -58,3 +58,4 @@ C:\Users\Mohamed LEMBARKI\Downloads\Starship\Starship\bin\Debug\net6.0\runtimes\
 C:\Users\Mohamed LEMBARKI\Downloads\Starship\Starship\obj\Debug\net6.0\Starship.csproj.CopyComplete
 C:\Users\Mohamed LEMBARKI\Downloads\Starship\Starship\obj\Debug\net6.0\Starship.genruntimeconfig.cache
 C:\Users\Mohamed LEMBARKI\Downloads\Starship\Starship\obj\Debug\net6.0\ref\Starship.dll
+C:\Users\Mohamed LEMBARKI\Downloads\Starship\Starship\bin\Debug\net6.0\Newtonsoft.Json.dll

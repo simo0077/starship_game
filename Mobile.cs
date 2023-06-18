@@ -12,7 +12,6 @@ namespace Starship
     public  abstract class Mobile
     {
         public Vector2 position;
-        public Texture2D mobileTexture;
 
 
 

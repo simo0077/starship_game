@@ -1,5 +1,8 @@
 D,34
+MOMO,13
 D,12
 USERGOOD,9
+D,9
 D,8
 F,8
+FD,8

@@ -12,10 +12,9 @@ namespace Starship
     public  class Tir : Mobile
     {
 
-        public Tir(Vector2 position, Texture2D mobileTexture)
+        public Tir(Vector2 position)
         {
             this.position = position;
-            this.mobileTexture = mobileTexture;
             
         }
         

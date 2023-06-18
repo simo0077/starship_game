@@ -12,10 +12,9 @@ namespace Starship
     public  class Saucer : Mobile
     {
 
-        public Saucer(Vector2 position, Texture2D mobileTexture, bool isActive)
+        public Saucer(Vector2 position, bool isActive)
         {
             this.position = position;
-            this.mobileTexture = mobileTexture;
             this.isActive = isActive;
             this.isInScreen = true;
             
