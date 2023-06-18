@@ -694,6 +694,12 @@ namespace Starship
 
         public List<KeyValuePair<string, int>> RetrieveScores(string fileName)
         {
+            //check if the file exists
+            if (!File.Exists(fileName))
+            {
+                //if not, create it
+                File.Create(fileName).Close();
+            }
             List<KeyValuePair<string, int>> scores = new List<KeyValuePair<string, int>>();
 
             string[] lines = File.ReadAllLines(fileName);
@@ -731,6 +737,11 @@ namespace Starship
 
         public void SaveScores(List<KeyValuePair<string, int>> scores, string fileName)
         {
+            if (!File.Exists(fileName))
+            {
+                //if not, create it
+                File.Create(fileName).Close();
+            }
             // Create a StringBuilder to build the content of the file
             StringBuilder sb = new StringBuilder();
 
